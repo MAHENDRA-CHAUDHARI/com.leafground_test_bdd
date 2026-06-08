@@ -1,0 +1,164 @@
+pipeline {
+    agent any
+
+    parameters {
+        choice(
+            name: 'EXECUTION_MODE',
+            choices: ['PARALLEL', 'SEQUENTIAL', 'SMOKE_ONLY', 'REGRESSION_ONLY'],
+            description: 'Select execution mode'
+        )
+        choice(
+            name: 'BRANCH',
+            choices: ['model', 'main', 'develop'],
+            description: 'Select branch to build'
+        )
+    }
+
+    environment {
+        MAVEN_HOME = tool 'Maven'
+        JAVA_HOME = tool 'JDK-21'
+        PATH = "${MAVEN_HOME}/bin:${JAVA_HOME}/bin:${PATH}"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: "*/${params.BRANCH}"]],
+                    userRemoteConfigs: [[
+                        credentialsId: 'gitlab-credentials',
+                        url: 'https://gitlab......'
+                    ]]
+                ])
+            }
+        }
+
+        stage('Parallel Test Execution') {
+            when {
+                expression { params.EXECUTION_MODE == 'PARALLEL' }
+            }
+            steps {
+                script {
+                    bat """
+                        mvn clean test ^
+                        -Dsurefire.suiteXmlFiles=./MAAHI_SUITES/master-parallel-suite.xml ^
+                        -Dparallel=tests ^
+                        -DthreadCount=2 ^
+                        -Dmaven.test.failure.ignore=true
+                    """
+                }
+            }
+        }
+
+        stage('Sequential Execution') {
+            when {
+                expression { params.EXECUTION_MODE == 'SEQUENTIAL' }
+            }
+            steps {
+                bat """
+                    mvn clean test ^
+                    -Dsurefire.suiteXmlFiles=./MAAHI_SUITES/Sprintwise/check1.xml ^
+                    -Dmaven.test.failure.ignore=true
+                """
+            }
+        }
+
+        stage('Smoke Tests Only') {
+            when {
+                expression { params.EXECUTION_MODE == 'SMOKE_ONLY' }
+            }
+            steps {
+                bat """
+                    mvn clean test ^
+                    -Dsurefire.suiteXmlFiles=./MAAHI_SUITES/smoke-suite.xml ^
+                    -Dmaven.test.failure.ignore=true
+                """
+            }
+        }
+
+        stage('Regression Tests Only') {
+            when {
+                expression { params.EXECUTION_MODE == 'REGRESSION_ONLY' }
+            }
+            steps {
+                bat """
+                    mvn clean test ^
+                    -Dsurefire.suiteXmlFiles=./MAAHI_SUITES/regression-suite.xml ^
+                    -Dmaven.test.failure.ignore=true
+                """
+            }
+        }
+    }
+
+    post {
+        always {
+            // Publish TestNG results
+            publishTestResults testResultsPattern: 'target/surefire-reports/*.xml'
+
+            // Archive test reports
+            archiveArtifacts artifacts: 'target/extent-reports/*.html', allowEmptyArchive: true
+            archiveArtifacts artifacts: 'target/surefire-reports/*', allowEmptyArchive: true
+
+            // Publish HTML report
+            publishHTML([
+                allowMissing: false,
+                alwaysLinkToLastBuild: true,
+                keepAll: true,
+                reportDir: 'target/extent-reports',
+                reportFiles: 'consolidated-report.html',
+                reportName: 'MAAHI Consolidated Test Report',
+                reportTitles: 'Parallel Execution Results'
+            ])
+
+            // Clean workspace
+            cleanWs()
+        }
+
+        success {
+            emailext (
+                subject: " MAAHI Tests Passed - ${params.EXECUTION_MODE} - Build #${env.BUILD_NUMBER}",
+                body: """
+                    Test execution completed successfully!
+
+                    Execution Mode: ${params.EXECUTION_MODE}
+                    Branch: ${params.BRANCH}
+
+                    View detailed report: ${env.BUILD_URL}MAAHI_Consolidated_Test_Report/
+                """,
+                recipientProviders: [developers(), requestor()]
+            )
+        }
+
+        failure {
+            emailext (
+                subject: " MAAHI Tests Failed - ${params.EXECUTION_MODE} - Build #${env.BUILD_NUMBER}",
+                body: """
+                    Test execution failed!
+
+                    Execution Mode: ${params.EXECUTION_MODE}
+                    Branch: ${params.BRANCH}
+
+                    Check logs: ${env.BUILD_URL}console
+                    View report: ${env.BUILD_URL}MAAHI_Consolidated_Test_Report/
+                """,
+                recipientProviders: [developers(), requestor()]
+            )
+        }
+
+        unstable {
+            emailext (
+                subject: " MAAHI Tests Unstable - ${params.EXECUTION_MODE} - Build #${env.BUILD_NUMBER}",
+                body: """
+                    Some tests failed but build completed.
+
+                    Execution Mode: ${params.EXECUTION_MODE}
+                    Branch: ${params.BRANCH}
+
+                    View report: ${env.BUILD_URL}MAAHI_Consolidated_Test_Report/
+                """,
+                recipientProviders: [developers(), requestor()]
+            )
+        }
+    }
+} 

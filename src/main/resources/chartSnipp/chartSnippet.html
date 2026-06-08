@@ -1,0 +1,79 @@
+<!-- chartSnippet.html -->
+<style>
+  .chart-container {
+    position: relative;
+    width: 100% !important;
+    height: 250px;
+    margin-bottom: 40px;
+    background: #fff;
+    padding: 15px;
+    box-sizing: border-box;
+    border-radius: 6px;
+    box-shadow: 0 0 8px rgb(0 0 0 / 0.1);
+    overflow: visible;
+  }
+
+  .table-responsive {
+    margin-top: 20px;
+    margin-bottom: 40px;
+  }
+
+  .card-body {
+    overflow-x: auto;
+  }
+</style>
+<div class="row mt-3">
+  <div class="col-lg-6 col-md-12">
+    <div class="card shadow-sm">
+      <div class="card-header"><strong>Overall Test Status</strong></div>
+      <div class="card-body">
+        <canvas id="statusPieChart"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6 col-md-12">
+    <div class="card shadow-sm">
+      <div class="card-header"><strong>Test Class Results</strong></div>
+      <div class="card-body">
+        <canvas id="classBarChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const testClassRows = Array.from(document.querySelectorAll('.category-container table tbody tr'));
+  const classLabels = testClassRows.map(row => row.cells[0].innerText.split('.').pop());
+  const passedData = testClassRows.map(row => parseInt(row.cells[1].innerText));
+  const failedData = testClassRows.map(row => parseInt(row.cells[2].innerText));
+  const skippedData = testClassRows.map(row => parseInt(row.cells[3].innerText));
+
+  const totalPassed = passedData.reduce((a,b)=>a+b,0);
+  const totalFailed = failedData.reduce((a,b)=>a+b,0);
+  const totalSkipped = skippedData.reduce((a,b)=>a+b,0);
+
+  const ctxPie = document.getElementById('statusPieChart').getContext('2d');
+  new Chart(ctxPie, {
+    type: 'pie',
+    data: {
+      labels: ['Passed','Failed','Skipped'],
+      datasets: [{ data: [totalPassed,totalFailed,totalSkipped], backgroundColor: ['#28a745','#dc3545','#6c757d'] }]
+    },
+    options: { responsive:true, plugins:{ legend:{ position:'bottom' } } }
+  });
+
+  const ctxBar = document.getElementById('classBarChart').getContext('2d');
+  new Chart(ctxBar, {
+    type: 'bar',
+    data: {
+      labels: classLabels,
+      datasets: [
+        { label:'Passed', data: passedData, backgroundColor:'#44ce1b ' },
+        { label:'Failed', data: failedData, backgroundColor:'#ff0000' },
+        { label:'Skipped', data: skippedData, backgroundColor:'#f7be12' }
+      ]
+    },
+    options: { responsive:true, plugins:{ legend:{ position:'top' } }, scales:{ y:{ beginAtZero:true } } }
+  });
+</script>
