@@ -2,7 +2,7 @@ Feature: Alert Handling - LeafGround
   Validate different types of JavaScript and Sweet Alerts
 
   Background:
-    Given user launches the browser
+    Given user launches the browser "<browserName>"
     When user navigates to the Alert Handling page
     Then the page should be loaded successfully
 

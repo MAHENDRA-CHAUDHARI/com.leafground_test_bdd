@@ -2,7 +2,7 @@ Feature: Drag and Drop - LeafGround
   Validate drag and drop interactions within the page
 
   Background:
-    Given user launches the browser
+    Given user launches the browser "<browserName>"
     When user navigates to Drag and Drop page
     Then the page should be loaded successfully
 

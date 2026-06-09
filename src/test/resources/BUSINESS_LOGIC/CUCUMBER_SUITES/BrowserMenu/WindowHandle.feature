@@ -2,7 +2,7 @@ Feature: Window Handling - LeafGround
   Validate window switching, multiple windows, and close operations
 
   Background:
-    Given user launches the browser
+    Given user launches the browser "<browserName>"
     When user navigates to the Window Handling page
     Then the page should be loaded successfully
 
