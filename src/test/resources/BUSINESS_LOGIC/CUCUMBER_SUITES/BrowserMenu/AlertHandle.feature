@@ -9,7 +9,7 @@ Feature: Alert Handling - LeafGround
   # ----------------------------
   # STEP 1: Simple Alert
   # ----------------------------
-
+@Regression @Alert_Handling
   Scenario: Handle simple JavaScript alert
     When user clicks on Simple Alert button
     Then alert should be displayed
@@ -20,13 +20,14 @@ Feature: Alert Handling - LeafGround
   # ----------------------------
   # STEP 2: Confirm Alert (OK/Cancel)
   # ----------------------------
-
+@Regression @Alert_Handling
   Scenario: Handle confirmation alert - accept
     When user clicks on Confirm Alert button
     Then confirmation alert should be displayed
     When user clicks OK on alert
     Then success message for OK should be displayed
 
+@Regression @Alert_Handling
   Scenario: Handle confirmation alert - dismiss
     When user clicks on Confirm Alert button
     Then confirmation alert should be displayed
@@ -36,7 +37,7 @@ Feature: Alert Handling - LeafGround
   # ----------------------------
   # STEP 3: Prompt Alert
   # ----------------------------
-
+@Regression @Alert_Handling
   Scenario: Handle prompt alert with input text
     When user clicks on Prompt Alert button
     Then prompt alert should be displayed
@@ -47,7 +48,7 @@ Feature: Alert Handling - LeafGround
   # ----------------------------
   # STEP 4: Sweet Alert - Simple Dialog
   # ----------------------------
-
+@Regression @Alert_Handling
   Scenario: Handle Sweet Alert simple dialog
     When user clicks on Sweet Alert simple button
     Then sweet alert dialog should be visible
@@ -57,7 +58,7 @@ Feature: Alert Handling - LeafGround
   # ----------------------------
   # STEP 5: Sweet Modal Dialog (Blocking UI)
   # ----------------------------
-
+@Regression @Alert_Handling
   Scenario: Handle sweet modal dialog and close
     When user opens Sweet Modal Dialog
     Then modal dialog should be visible
@@ -69,13 +70,14 @@ Feature: Alert Handling - LeafGround
   # ----------------------------
   # STEP 6: Sweet Alert Confirmation
   # ----------------------------
-
+@Regression @Alert_Handling
   Scenario: Handle sweet alert confirmation - yes
     When user clicks Sweet Alert Confirmation button
     Then confirmation dialog should appear
     When user clicks Yes button
     Then success confirmation message should be shown
 
+@Regression @Alert_Handling
   Scenario: Handle sweet alert confirmation - no
     When user clicks Sweet Alert Confirmation button
     Then confirmation dialog should appear
@@ -85,7 +87,7 @@ Feature: Alert Handling - LeafGround
   # ----------------------------
   # STEP 7: Sweet Alert - Minimize/Maximize
   # ----------------------------
-
+@Regression @Alert_Handling
   Scenario: Minimize and maximize sweet alert
     When user opens Sweet Alert with minimize/maximize option
     Then alert should be displayed
@@ -97,7 +99,7 @@ Feature: Alert Handling - LeafGround
   # ----------------------------
   # STEP 8: Negative / Edge Cases
   # ----------------------------
-
+@Regression @Alert_Handling
   Scenario: Handle alert without accepting (timeout behavior)
     When user triggers simple alert
     Then alert should be present
@@ -105,11 +107,13 @@ Feature: Alert Handling - LeafGround
     When user does not interact with alert for 3 seconds
     Then alert should still be active or handled safely
 
+@Regression @Alert_Handling
   Scenario: Switch context without handling alert
     When user triggers alert
     And user tries to interact with page elements
     Then interaction should be blocked until alert is handled
 
+@Regression @Alert_Handling
   Scenario: Invalid alert handling attempt
     When no alert is present
     And user tries to accept alert
